@@ -1,45 +1,39 @@
 // pages/api/jogos.js
+
 export default async function handler(req, res) {
   try {
-    const response = await fetch("https://v3.football.api-sports.io/fixtures?live=all", {
+    const response = await fetch("https://api.football-data.org/v4/matches", {
       headers: {
-        "x-apisports-key": process.env.API_FOOTBALL_KEY, // sua chave do .env.local
+        "X-Auth-Token": process.env.FOOTBALL_DATA_KEY, // ✅ usando a variável que você já tem
       },
     });
 
+    if (!response.ok) {
+      return res.status(response.status).json({ error: "Erro ao buscar dados da API" });
+    }
+
     const data = await response.json();
 
-    const jogos = data.response.map((item) => ({
-      campeonato: item.league.name,
-      home: item.teams.home.name,
-      away: item.teams.away.name,
-      homeLogo: item.teams.home.logo,
-      awayLogo: item.teams.away.logo,
-      placar: `${item.goals.home} x ${item.goals.away}`,
+    // Organizar os jogos de forma simples
+    const jogos = data.matches.map((match) => ({
+      id: match.id,
       status:
-        item.fixture.status.short === "1H" ||
-        item.fixture.status.short === "2H" ||
-        item.fixture.status.short === "LIVE"
+        match.status === "LIVE"
           ? "ao vivo"
-          : item.fixture.status.short === "NS"
-          ? "próximo"
-          : item.fixture.status.short === "FT"
+          : match.status === "FINISHED"
           ? "encerrado"
-          : "outro",
-      estadio: item.fixture.venue?.name || "Estádio não informado",
-      data: new Date(item.fixture.date).toLocaleString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      statistics: item.statistics || [],
+          : "próximo",
+      timeCasa: match.homeTeam?.name,
+      timeFora: match.awayTeam?.name,
+      placarCasa: match.score?.fullTime?.home ?? 0,
+      placarFora: match.score?.fullTime?.away ?? 0,
+      horario: match.utcDate,
+      campeonato: match.competition?.name,
     }));
 
-    res.status(200).json(jogos);
+    res.status(200).json({ jogos });
   } catch (error) {
-    console.error("Erro API:", error);
-    res.status(500).json({ error: "Erro ao buscar dados da API-Football" });
+    console.error("Erro na API de jogos:", error);
+    res.status(500).json({ error: "Erro interno no servidor" });
   }
 }
