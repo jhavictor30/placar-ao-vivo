@@ -1,0 +1,32 @@
+[
+  {
+    "campeonato": "Brasileirão Série A",
+    "data": "29/08/2025",
+    "hora": "20:00",
+    "time1": "Palmeiras",
+    "time2": "Corinthians",
+    "gols1": 2,
+    "gols2": 1,
+    "status": "ao_vivo"
+  },
+  {
+    "campeonato": "Champions League",
+    "data": "30/08/2025",
+    "hora": "16:00",
+    "time1": "Real Madrid",
+    "time2": "Barcelona",
+    "gols1": 0,
+    "gols2": 0,
+    "status": "proximo"
+  },
+  {
+    "campeonato": "Copa do Brasil",
+    "data": "28/08/2025",
+    "hora": "21:30",
+    "time1": "Flamengo",
+    "time2": "São Paulo",
+    "gols1": 3,
+    "gols2": 2,
+    "status": "encerrado"
+  }
+]
