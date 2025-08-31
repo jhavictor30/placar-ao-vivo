@@ -1,26 +1,24 @@
-// pages/api/tabelas.js
-
-export default async function handler(req, res) {
-  try {
-    const response = await fetch(
-      "https://v3.football.api-sports.io/standings?league=71&season=2025", // Troque o league e season se quiser outra competição
-      {
-        method: "GET",
-        headers: {
-          "x-apisports-key": process.env.NEXT_PUBLIC_API_KEY,
-        },
-      }
-    );
-
-    const data = await response.json();
-
-    if (!data || data.errors) {
-      return res.status(400).json({ error: "Erro ao buscar dados da API" });
+{
+  "times": [
+    {
+      "posicao": 1,
+      "nome": "Palmeiras",
+      "pontos": 45,
+      "jogos": 22,
+      "vitorias": 14,
+      "empates": 3,
+      "derrotas": 5,
+      "saldoGols": 20
+    },
+    {
+      "posicao": 2,
+      "nome": "Flamengo",
+      "pontos": 44,
+      "jogos": 22,
+      "vitorias": 13,
+      "empates": 5,
+      "derrotas": 4,
+      "saldoGols": 18
     }
-
-    return res.status(200).json(data);
-  } catch (error) {
-    console.error("Erro API:", error);
-    return res.status(500).json({ error: "Erro interno do servidor" });
-  }
+  ]
 }
