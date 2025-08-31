@@ -20,7 +20,7 @@ export default function AdSense({ slot, format = 'auto', responsive = 'true', la
       <ins
         className="adsbygoogle"
         style={{ display: 'block' }}
-        data-ad-client={process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_ID} // ID do publicador do AdSense
+        data-ad-client="ca-pub-7516070264132194" // ID do publicador do AdSense
         data-ad-slot={slot} // Slot específico do anúncio definido no AdSense
         data-ad-format={format}
         data-full-width-responsive={responsive}

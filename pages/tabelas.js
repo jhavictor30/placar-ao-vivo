@@ -93,16 +93,8 @@ export default function Tabela() {
                       <td className="py-3 px-4 font-semibold text-flash-text">{t.posicao}</td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center text-xs overflow-hidden">
-                            <img
-                              src={`/escudos/${t.nome.toLowerCase()}.png`}
-                              alt={t.nome}
-                              className="w-full h-full object-contain"
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.parentNode.textContent = t.nome.charAt(0);
-                              }}
-                            />
+                          <div className="w-6 h-6 bg-flash-dark rounded-full flex items-center justify-center text-xs text-flash-text overflow-hidden">
+                            {t.nome.charAt(0)}
                           </div>
                           <span className="font-medium text-flash-text">{t.nome}</span>
                         </div>

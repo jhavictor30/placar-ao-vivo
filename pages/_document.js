@@ -5,10 +5,10 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head>
-        {/* Script do Google AdSense - Substitua XXXXXXXXXXXXXXXX pelo seu ID de publicador */}
+        {/* Script do Google AdSense - Snippet de código para verificação */}
         <Script
           async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_ID}`}
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7516070264132194"
           strategy="afterInteractive"
           crossOrigin="anonymous"
         />
