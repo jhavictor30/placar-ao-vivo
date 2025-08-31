@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
   const [destaques, setDestaques] = useState([]);
+  const [jogosAoVivo, setJogosAoVivo] = useState([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("destaques");
 
   const campeonatos = [
     "Brasileirão Série A",
@@ -16,152 +19,238 @@ export default function Home() {
   ];
 
   useEffect(() => {
-    const fetchDestaques = async () => {
+    const fetchJogos = async () => {
       try {
         const res = await fetch("/api/jogos");
         const data = await res.json();
 
         if (data.jogos) {
+          // Filtrar jogos ao vivo
+          const aoVivo = data.jogos.filter(j => j.status === "ao vivo");
+          setJogosAoVivo(aoVivo);
+          
+          // Filtrar destaques (ao vivo + próximos)
           const jogosFiltrados = data.jogos.filter(
             (j) => j.status === "ao vivo" || j.status === "próximo"
           );
           setDestaques(jogosFiltrados.slice(0, 10));
         }
       } catch (error) {
-        console.error("Erro ao carregar destaques:", error);
+        console.error("Erro ao carregar jogos:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDestaques();
+    fetchJogos();
+    
+    // Atualizar dados a cada 60 segundos
+    const interval = setInterval(fetchJogos, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#1e1e1e] text-white flex">
-      {/* Sidebar Desktop */}
-      <aside className="w-64 bg-[#111] border-r border-gray-800 hidden md:block sticky top-0 h-screen">
-        <div className="p-4 border-b border-gray-800">
-          <h2 className="text-lg font-bold text-green-500">🏆 Campeonatos</h2>
+    <div className="flex flex-col">
+      {/* Abas de navegação */}
+      <div className="border-b border-flash-border mb-4">
+        <div className="flex space-x-1">
+          <button
+            onClick={() => setActiveTab("destaques")}
+            className={`px-4 py-2 font-medium ${activeTab === "destaques" 
+              ? "border-b-2 border-flash-yellow text-flash-yellow" 
+              : "text-flash-text-secondary hover:text-flash-text"}`}
+          >
+            Destaques
+          </button>
+          <button
+            onClick={() => setActiveTab("aovivo")}
+            className={`px-4 py-2 font-medium flex items-center ${activeTab === "aovivo" 
+              ? "border-b-2 border-flash-red text-flash-red" 
+              : "text-flash-text-secondary hover:text-flash-text"}`}
+          >
+            {activeTab === "aovivo" && (
+              <span className="animate-pulse-fast mr-1 h-2 w-2 rounded-full bg-flash-red"></span>
+            )}
+            Ao Vivo ({jogosAoVivo.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("favoritos")}
+            className={`px-4 py-2 font-medium ${activeTab === "favoritos" 
+              ? "border-b-2 border-flash-yellow text-flash-yellow" 
+              : "text-flash-text-secondary hover:text-flash-text"}`}
+          >
+            Favoritos
+          </button>
         </div>
-        <nav className="p-4 space-y-2">
-          {campeonatos.map((camp, i) => (
-            <button
-              key={i}
-              className="block w-full text-left px-3 py-2 rounded hover:bg-[#2a2a2a] text-sm"
-            >
-              {camp}
-            </button>
-          ))}
-        </nav>
-      </aside>
-
-      {/* Conteúdo principal */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="bg-[#111] py-4 shadow-md sticky top-0 z-20">
-          <div className="max-w-5xl mx-auto px-4 flex justify-between items-center">
-            {/* Botão hambúrguer no mobile */}
-            <button
-              className="md:hidden text-white focus:outline-none"
-              onClick={() => setMenuOpen(true)}
-            >
-              ☰
-            </button>
-
-            <h1 className="text-xl font-bold text-green-500">⚽ Placar ao Vivo</h1>
-
-            <nav className="space-x-4 hidden sm:block">
-              <button className="text-sm hover:text-green-400">Todos</button>
-              <button className="text-sm hover:text-green-400">Ao vivo</button>
-              <button className="text-sm hover:text-green-400">Meus Jogos</button>
-            </nav>
-          </div>
-        </header>
-
-        {/* Lista de jogos */}
-        <main className="max-w-5xl mx-auto px-4 py-6 w-full">
-          <h3 className="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
-            Destaques de hoje
-          </h3>
-
-          {loading ? (
-            <p>Carregando...</p>
-          ) : destaques.length === 0 ? (
-            <p className="text-gray-400">Nenhuma partida em destaque agora.</p>
-          ) : (
-            <div className="divide-y divide-gray-700 border border-gray-700 rounded-lg">
-              {destaques.map((jogo, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between px-4 py-3 hover:bg-[#2a2a2a] transition"
-                >
-                  {/* Esquerda */}
-                  <div className="flex flex-col">
-                    <span className="text-xs text-gray-400">{jogo.campeonato}</span>
-                    <div className="flex items-center gap-2">
-                      <span>{jogo.timeCasa}</span>
-                      <span className="font-bold text-green-500">{jogo.golsCasa}</span>
-                      <span className="mx-1">x</span>
-                      <span className="font-bold text-green-500">{jogo.golsFora}</span>
-                      <span>{jogo.timeFora}</span>
-                    </div>
-                  </div>
-
-                  {/* Direita */}
-                  <div className="text-right">
-                    <p
-                      className={`text-sm font-semibold ${
-                        jogo.status === "ao vivo"
-                          ? "text-green-400 animate-pulse"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      {jogo.status === "ao vivo"
-                        ? `AO VIVO ${jogo.tempo}’`
-                        : jogo.horario}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </main>
       </div>
 
-      {/* Overlay do menu mobile */}
-      {menuOpen && (
-        <div className="fixed inset-0 z-30 flex">
-          {/* Fundo escuro */}
-          <div
-            className="fixed inset-0 bg-black opacity-50"
-            onClick={() => setMenuOpen(false)}
-          ></div>
-
-          {/* Sidebar Mobile */}
-          <aside className="relative w-64 bg-[#111] h-full shadow-lg z-40 animate-slide-in">
-            <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-bold text-green-500">🏆 Campeonatos</h2>
-              <button
-                className="text-white"
-                onClick={() => setMenuOpen(false)}
-              >
-                ✖
-              </button>
-            </div>
-            <nav className="p-4 space-y-2">
-              {campeonatos.map((camp, i) => (
-                <button
-                  key={i}
-                  className="block w-full text-left px-3 py-2 rounded hover:bg-[#2a2a2a] text-sm"
-                >
-                  {camp}
-                </button>
-              ))}
-            </nav>
-          </aside>
-        </div>
-      )}
+      {/* Lista de jogos */}
+      <div className="w-full">
+        {loading ? (
+          <div className="flex justify-center items-center py-10">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-flash-yellow"></div>
+          </div>
+        ) : (
+          <>
+            {/* Conteúdo da aba Destaques */}
+            {activeTab === "destaques" && (
+              <div>
+                <h3 className="text-xl font-semibold mb-4 text-flash-text">
+                  Destaques de hoje
+                </h3>
+                
+                {destaques.length === 0 ? (
+                  <p className="text-flash-text-secondary">Nenhuma partida em destaque agora.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {destaques.map((jogo, index) => (
+                      <div
+                        key={index}
+                        className="bg-flash-card border border-flash-border rounded-lg overflow-hidden hover:bg-flash-hover transition cursor-pointer"
+                      >
+                        {/* Cabeçalho do jogo */}
+                        <div className="bg-flash-dark px-3 py-1 flex justify-between items-center">
+                          <span className="text-xs text-flash-text-secondary">{jogo.campeonato}</span>
+                          <span 
+                            className={`text-xs font-medium px-2 py-0.5 rounded-full ${jogo.status === "ao vivo" 
+                              ? "bg-flash-red text-white" 
+                              : "bg-flash-blue bg-opacity-20 text-flash-blue"}`}
+                          >
+                            {jogo.status === "ao vivo" ? "AO VIVO" : "HOJE"}
+                          </span>
+                        </div>
+                        
+                        {/* Conteúdo do jogo */}
+                        <div className="p-3">
+                          <div className="flex items-center justify-between">
+                            {/* Time Casa */}
+                            <div className="flex items-center space-x-2 w-2/5">
+                              <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-xs">
+                                {jogo.timeCasa?.charAt(0)}
+                              </div>
+                              <span className="font-medium truncate">{jogo.timeCasa}</span>
+                            </div>
+                            
+                            {/* Placar */}
+                            <div className="flex items-center justify-center space-x-2 w-1/5">
+                              <span className={`font-bold text-lg ${jogo.status === "ao vivo" ? "text-flash-yellow" : "text-flash-text"}`}>
+                                {jogo.placarCasa ?? "0"}
+                              </span>
+                              <span className="text-flash-text-secondary">-</span>
+                              <span className={`font-bold text-lg ${jogo.status === "ao vivo" ? "text-flash-yellow" : "text-flash-text"}`}>
+                                {jogo.placarFora ?? "0"}
+                              </span>
+                            </div>
+                            
+                            {/* Time Fora */}
+                            <div className="flex items-center justify-end space-x-2 w-2/5">
+                              <span className="font-medium text-right truncate">{jogo.timeFora}</span>
+                              <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-xs">
+                                {jogo.timeFora?.charAt(0)}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Tempo de jogo */}
+                          {jogo.status === "ao vivo" && (
+                            <div className="mt-2 text-center">
+                              <span className="text-flash-red text-sm animate-pulse-fast">
+                                {jogo.tempo || "45"}'
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Conteúdo da aba Ao Vivo */}
+            {activeTab === "aovivo" && (
+              <div>
+                <h3 className="text-xl font-semibold mb-4 text-flash-red flex items-center">
+                  <span className="animate-pulse-fast mr-2 h-3 w-3 rounded-full bg-flash-red"></span>
+                  Jogos ao vivo
+                </h3>
+                
+                {jogosAoVivo.length === 0 ? (
+                  <p className="text-flash-text-secondary">Nenhuma partida ao vivo no momento.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {jogosAoVivo.map((jogo, index) => (
+                      <div
+                        key={index}
+                        className="bg-flash-card border border-flash-border rounded-lg overflow-hidden hover:bg-flash-hover transition cursor-pointer"
+                      >
+                        {/* Cabeçalho do jogo */}
+                        <div className="bg-flash-dark px-3 py-1 flex justify-between items-center">
+                          <span className="text-xs text-flash-text-secondary">{jogo.campeonato}</span>
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-flash-red text-white">
+                            AO VIVO
+                          </span>
+                        </div>
+                        
+                        {/* Conteúdo do jogo */}
+                        <div className="p-3">
+                          <div className="flex items-center justify-between">
+                            {/* Time Casa */}
+                            <div className="flex items-center space-x-2 w-2/5">
+                              <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-xs">
+                                {jogo.timeCasa?.charAt(0)}
+                              </div>
+                              <span className="font-medium truncate">{jogo.timeCasa}</span>
+                            </div>
+                            
+                            {/* Placar */}
+                            <div className="flex items-center justify-center space-x-2 w-1/5">
+                              <span className="font-bold text-lg text-flash-yellow">
+                                {jogo.placarCasa ?? "0"}
+                              </span>
+                              <span className="text-flash-text-secondary">-</span>
+                              <span className="font-bold text-lg text-flash-yellow">
+                                {jogo.placarFora ?? "0"}
+                              </span>
+                            </div>
+                            
+                            {/* Time Fora */}
+                            <div className="flex items-center justify-end space-x-2 w-2/5">
+                              <span className="font-medium text-right truncate">{jogo.timeFora}</span>
+                              <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-xs">
+                                {jogo.timeFora?.charAt(0)}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Tempo de jogo */}
+                          <div className="mt-2 text-center">
+                            <span className="text-flash-red text-sm animate-pulse-fast">
+                              {jogo.tempo || "45"}'
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Conteúdo da aba Favoritos */}
+            {activeTab === "favoritos" && (
+              <div className="text-center py-10">
+                <div className="text-flash-yellow text-5xl mb-4">⭐</div>
+                <h3 className="text-xl font-semibold mb-2">Nenhum favorito ainda</h3>
+                <p className="text-flash-text-secondary mb-4">Adicione jogos aos favoritos para acompanhá-los facilmente</p>
+                <Link href="/jogos" className="px-4 py-2 bg-flash-yellow text-black rounded-md font-medium hover:bg-opacity-90 transition">
+                  Ver todos os jogos
+                </Link>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
