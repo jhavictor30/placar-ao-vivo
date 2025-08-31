@@ -11,7 +11,7 @@ export default function Tabela() {
   useEffect(() => {
     const fetchTabela = async () => {
       try {
-        const res = await fetch("/api/tabela");
+        const res = await fetch("/api/tabelas");
         const data = await res.json();
 
         if (data.times) {
